@@ -9,7 +9,22 @@ import re
 
 
 def sanefilename(strlist):
-    filename = '-'.join(strlist)
+    filename = '-'.join(strlist).strip().lower()
+    wordlist=[
+        "a", "an", "as", "at", "before", "but", "by", "for", "from", "is", "in", "into", "like", "of", "off", "on", "onto", "per", "since", "than", "the", "this", "that", " up", "via", "with"] 
+
+    # \b for begin or end of word, | is logical OR
+    # "\ba\b|\ban\b|\bas\b" for a, an as
+    prepregex =  r"\b" + r"\b|\b".join(wordlist) + r"\b"
+    spaceregex = r"\s"
+    hypregex = r"-+"
+    splcharegex = r'[\\~!@#$%^&*(){}<>?/|,;:`\[\]+_="\']+'
+
+    filename = re.sub(prepregex,'',filename)
+    filename = re.sub(spaceregex,'-',filename)
+    filename = re.sub(splcharegex,'',filename)
+    filename = re.sub(hypregex,'-',filename)
+    return filename
 
 # Input header                           # output header        
 # 0 Assignee                             # 0  Unique ID (in local context)
@@ -22,25 +37,24 @@ def sanefilename(strlist):
 # 7 Internal ID / Seq ID                 # 7  Publisher         
 # 8 Unique Resource ID                   # 8  Description       
 # 9 Title                                # 9  Language          
-# 10 Renamed File                        # 10 File type         
-# 11  Sane file                          # 11 Content Type      
-# 12 Creator                             # 12 Format            
-# 13 Date.Created                        # 13 Copyright         
-# 14 Coverage.Temporal                   # 14 Keyword/ Subject  
-# 15 Coverage.Spatial
-# 16 Publisher
-# 17 Description
-# 18 Language
-# 19 File type
-# 20 Content Type
-# 21 Format
-# 22 Copyright
-# 23 Keyword/ Subject
+# 10 Creator                             # 10 File type         
+# 11 Date.Created                        # 11 Content Type      
+# 12 Coverage.Temporal                   # 12 Format            
+# 13 Coverage.Spatial                    # 13 Copyright         
+# 14 Publisher                           # 14 Keyword/ Subject  
+# 15 Description        
+# 16 Language           
+# 17 File type          
+# 18 Content Type       
+# 19 Format             
+# 20 Copyright          
+# 21 Keyword/ Subject   
 
 def makesane(row):
     filename = sanefilename([row[8], row[9] + '.' + row[19]])
-    sane = [ row[8], 
-    
+
+    sane = [row[8],filename,row[9]] + row[10:]
+    #sane = [filename]
     return sane
 
 
@@ -77,8 +91,8 @@ with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
     sanewriter = csv.writer(outf, delimiter=',')
 
     header = next(inpreader,None);
-    for i in range(len(header)):
-        print i, header[i]
+    #for i in range(len(header)):
+    #    print i, header[i]
 
     nrows = 0
     for irow in inpreader:
