@@ -8,6 +8,7 @@ import sys
 import os
 import re
 import urllib2
+import shutil
 
 
 def sanefilename(strlist):
@@ -78,7 +79,7 @@ def makesane(row):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     
-    os.rename(srcpath,destpath)
+    shutil.copyfile(srcpath,destpath)
 
 
     sane = [row[8],relpath,row[9]] + row[10:]
