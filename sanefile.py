@@ -5,7 +5,9 @@
 
 import csv
 import sys
+import os
 import re
+import urllib2
 
 
 def sanefilename(strlist):
@@ -51,9 +53,35 @@ def sanefilename(strlist):
 # 21 Keyword/ Subject   
 
 def makesane(row):
+    # made from uniq ID, title and extension
     filename = sanefilename([row[8], row[9] + '.' + row[19]])
 
-    sane = [row[8],filename,row[9]] + row[10:]
+    # source
+    dirname = sanefilename([row[5]])
+
+    relpath = dirname + '/' + filename
+
+
+    urlpath = urllib2.unquote(row[3])
+    urlprefix = "http://10.129.50.5/nvli/data/"
+    
+    srcfile = re.sub(urlprefix,'',urlpath)
+    
+    srcdir = "/NFSMount/SV-Patel_Data/nvli"
+    srcpath = '/'.join([srcdir,srcfile])
+
+    destroot = "/NFSMount/sardar/files"
+    destpath = '/'.join([destroot, relpath])
+    print srcpath,destpath
+
+    dirname = os.path.dirname(destpath)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    
+    os.rename(srcpath,destpath)
+
+
+    sane = [row[8],relpath,row[9]] + row[10:]
     #sane = [filename]
     return sane
 
@@ -101,7 +129,7 @@ with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
         sanewriter.writerow(result)
 
 
-print 'Processed', len(irow), "rows"
+print 'Processed', nrows, "rows"
 
     
         
