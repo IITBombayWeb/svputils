@@ -61,7 +61,7 @@ def makesane(row):
     # source
     dirname = sanefilename([row[5]])
 
-    relpath = dirname + '/' + filename
+    relpath = 'archive/' + dirname + '/' + filename
 
 
     # replace % characters in URL eg %20 by space
@@ -84,6 +84,7 @@ def makesane(row):
     
     #os.rename is a mv and needs permissions to delete srcpath
     print 'Copying from %s to \n\t%s ' % (srcpath,destpath)
+    sys.stdout.flush()
     shutil.copyfile(srcpath,destpath)
 
 
