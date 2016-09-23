@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-#parse the results file and vaidate entries
+# creates a filename using various fields in a CSV
+# strips filename of common words and special characters
 
 
 import csv
@@ -63,22 +64,26 @@ def makesane(row):
     relpath = dirname + '/' + filename
 
 
+    # replace % characters in URL eg %20 by space
     urlpath = urllib2.unquote(row[3])
     urlprefix = "http://10.129.50.5/nvli/data/"
     
+    # Strip urlprefix to find the relative path in local partition
     srcfile = re.sub(urlprefix,'',urlpath)
     
+    # the local partition
     srcdir = "/NFSMount/SV-Patel_Data/nvli"
     srcpath = '/'.join([srcdir,srcfile])
 
     destroot = "/NFSMount/sardar/files"
     destpath = '/'.join([destroot, relpath])
-    print srcpath,destpath
 
     dirname = os.path.dirname(destpath)
     if not os.path.exists(dirname):
         os.makedirs(dirname)
     
+    #os.rename is a mv and needs permissions to delete srcpath
+    print 'Copying from %s to \n\t%s ' % (srcpath,destpath)
     shutil.copyfile(srcpath,destpath)
 
 
@@ -97,21 +102,6 @@ if (len(sys.argv) != 2):
 
 inpfilename=sys.argv[1]
 outfilename="processed.csv"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
