@@ -102,7 +102,7 @@ if (len(sys.argv) != 2):
 
 
 inpfilename=sys.argv[1]
-outfilename="processed.csv"
+outfilename="processed-" + inpfilename
 
 
 with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
@@ -114,14 +114,36 @@ with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
     #for i in range(len(header)):
     #    print i, header[i]
 
+    outheader = [ "Unique ID",
+                  "Filename",
+                  "Title",
+                  "Creator",
+                  "Date",
+                  "Coverage.Temporal",
+                  "Coverage.Spatial",
+                  "Publisher",
+                  "Description",
+                  "Language",
+                  "File type",
+                  "Content Type",
+                  "Format",
+                  "Copyright",
+                  "Keyword/Subject",
+    ]
+    sanewriter.writerow(outheader)
+
+    
     nrows = 0
     for irow in inpreader:
         nrows += 1
         result = makesane(irow)
         sanewriter.writerow(result)
 
-
+print
+print '===================================================='
 print 'Processed', nrows, "rows"
+print 'Use', outfilename, "in the migrate module"
+print
 
     
         
