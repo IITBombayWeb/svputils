@@ -85,7 +85,15 @@ def makesane(row):
     #os.rename is a mv and needs permissions to delete srcpath
     print 'Copying from %s to \n\t%s ' % (srcpath,destpath)
     sys.stdout.flush()
-    shutil.copyfile(srcpath,destpath)
+
+    try: 
+        shutil.copyfile(srcpath,destpath)
+    # eg. src and dest are the same file
+    except shutil.Error as e:
+        print('Error: %s' % e)
+    # eg. source or destination doesn't exist
+    except IOError as e:
+        print('Error: %s, %s' % (srcpath, e.strerror))
 
 
     sane = [row[8],relpath,row[9]] + row[10:]
