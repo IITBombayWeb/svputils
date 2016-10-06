@@ -14,12 +14,12 @@ import shutil
 
 def sanefilename(strlist):
     filename = '-'.join(strlist).strip().lower()
-    wordlist=[
+    prunewordlist=[
         "a", "an", "as", "at", "before", "but", "by", "for", "from", "is", "in", "into", "like", "of", "off", "on", "onto", "per", "since", "than", "the", "this", "that", " up", "via", "with"] 
 
     # \b for begin or end of word, | is logical OR
     # "\ba\b|\ban\b|\bas\b" for a, an as
-    prepregex =  r"\b" + r"\b|\b".join(wordlist) + r"\b"
+    prepregex =  r"\b" + r"\b|\b".join(prunewordlist) + r"\b"
     spaceregex = r"\s"
     hypregex = r"-+"
     splcharegex = r'[\\~!@#$%^&*(){}<>?/|,;:`\[\]+_="\']+'
@@ -88,15 +88,17 @@ def makesane(row):
 
     try: 
         shutil.copyfile(srcpath,destpath)
+        sane = [row[8],relpath,row[9]] + row[10:]
     # eg. src and dest are the same file
     except shutil.Error as e:
         print('Error: %s' % e)
+        sane = "Error"
     # eg. source or destination doesn't exist
     except IOError as e:
         print('Error: %s, %s' % (srcpath, e.strerror))
+        sane = "Error"
 
 
-    sane = [row[8],relpath,row[9]] + row[10:]
     #sane = [filename]
     return sane
 
@@ -143,9 +145,10 @@ with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
     
     nrows = 0
     for irow in inpreader:
-        nrows += 1
         result = makesane(irow)
-        sanewriter.writerow(result)
+        if (result != "Error"):
+            sanewriter.writerow(result)
+            nrows += 1
 
 print
 print '===================================================='
