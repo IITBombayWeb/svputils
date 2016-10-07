@@ -87,13 +87,22 @@ def hashedfile(row):
     srcpath = '/'.join([srcdir,srcfile])
 
 
-    fmt = row[19].lower()
+    fmt = row[19].lower().strip()
 
     hrow = []
 
-    if fmt not in allowedfmt:
-        print 'Warning, format not imported: %s for %s' % (fmt,srcpath)
+    name,ext = os.path.splitext(srcpath)
+    ext = ext.lstrip('.')
+
+    if ext != fmt:
+        print 'Warning, ext (%s) does not match format (%s) ' % (ext,fmt)
         return hrow
+    
+
+    if fmt not in allowedfmt:
+        print 'Caution, format not imported: %s for %s' % (fmt,srcpath)
+        return hrow
+
     
     print 'Hashing %s ' % srcpath
     sys.stdout.flush()
@@ -102,9 +111,8 @@ def hashedfile(row):
 
 
     if (filehash != 'Error'):
-        hrow = row
-        hrow[9] = hrow[9].strip()
-        hrow[15] = hrow[15].strip()
+        hrow = map(str.strip,row)
+        hrow[9]  = hrow[9].rstrip('.') # remove trailing period in title
         
         hrow.insert(22,filehash)
 
