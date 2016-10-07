@@ -13,6 +13,14 @@ import shutil
 
 import hashlib
 
+
+
+allowedfmt = [ 'jpg', 'jpeg', 'wav', 'png', 'gif',
+               'mp4', 'mpg', 'mpeg', 'wmv',
+               'pdf', 'mp3', 'wav'] 
+
+
+
 def hash_a_file(filename):
     
     BLOCKSIZE = 65536
@@ -29,29 +37,31 @@ def hash_a_file(filename):
     except EnvironmentError:
         # parent of IOError, OSError *and* WindowsError where available
        fhash = 'Error' 
+       print 'Error, not found: %s' % filename
+       
         
-    print(fhash)
+    #print(fhash)
 
     return fhash
 
 
 
-# Input header                           # output header        
-# 0 Assignee                             # 0  Unique ID (in local context)
-# 1 Status                               # 1  Filename (relative)
-# 2 Comment/Remark                       # 2  Title              
-# 3 Local URL                            # 3  Creator           
-# 4 YYYY                                 # 4  Date              
-# 5 Source ID                            # 5  Coverage.Temporal 
-# 6 Accession Number                     # 6  Coverage.Spatial  
-# 7 Internal ID / Seq ID                 # 7  Publisher         
-# 8 Unique Resource ID                   # 8  Description       
-# 9 Title                                # 9  Language          
-# 10 Creator                             # 10 File type         
-# 11 Date.Created                        # 11 Content Type      
-# 12 Coverage.Temporal                   # 12 Format            
-# 13 Coverage.Spatial                    # 13 Copyright         
-# 14 Publisher                           # 14 Keyword/ Subject  
+# Input header                           
+# 0 Assignee                             
+# 1 Status                                
+# 2 Comment/Remark                         
+# 3 Local URL                             
+# 4 YYYY                                  
+# 5 Source ID                             
+# 6 Accession Number                      
+# 7 Internal ID / Seq ID                  
+# 8 Unique Resource ID                    
+# 9 Title                                 
+# 10 Creator                              
+# 11 Date.Created                         
+# 12 Coverage.Temporal                    
+# 13 Coverage.Spatial                     
+# 14 Publisher                            
 # 15 Description        
 # 16 Language           
 # 17 File type          
@@ -59,8 +69,12 @@ def hash_a_file(filename):
 # 19 Format             
 # 20 Copyright          
 # 21 Keyword/ Subject   
+# 22 File hash
 
 def hashedfile(row):
+
+    global allowedfmt
+    
     # replace % characters in URL eg %20 by space
     urlpath = urllib2.unquote(row[3])
     urlprefix = "http://10.129.50.5/nvli/data/"
@@ -72,19 +86,20 @@ def hashedfile(row):
     srcdir = "/NFSMount/SV-Patel_Data/nvli"
     srcpath = '/'.join([srcdir,srcfile])
 
-    # destroot = "/NFSMount/sardar/files"
-    # destpath = '/'.join([destroot, relpath])
-    # dirname = os.path.dirname(destpath)
-    # if not os.path.exists(dirname):
-    #     os.makedirs(dirname)
+
+    fmt = row[19].lower()
+
+    hrow = []
+
+    if fmt not in allowedfmt:
+        print 'Warning, format not imported: %s for %s' % (fmt,srcpath)
+        return hrow
     
-    #os.rename is a mv and needs permissions to delete srcpath
-    print 'Hashing from %s ' % srcpath
+    print 'Hashing %s ' % srcpath
     sys.stdout.flush()
 
     filehash = hash_a_file(srcpath)
 
-    hrow = []
 
     if (filehash != 'Error'):
         hrow = row
@@ -114,6 +129,8 @@ with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
     #for i in range(len(header)):
     #    print i, header[i]
     outheader = header
+
+    outheader.insert(22,"File hash")
     hashwriter.writerow(outheader)
 
     
