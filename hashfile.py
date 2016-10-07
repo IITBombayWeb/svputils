@@ -103,6 +103,9 @@ def hashedfile(row):
 
     if (filehash != 'Error'):
         hrow = row
+        hrow[9] = hrow[9].strip()
+        hrow[15] = hrow[15].strip()
+        
         hrow.insert(22,filehash)
 
     return hrow
