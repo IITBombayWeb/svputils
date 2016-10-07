@@ -95,7 +95,7 @@ def hashedfile(row):
     ext = ext.lstrip('.')
 
     if ext != fmt:
-        print 'Warning, ext (%s) does not match format (%s) ' % (ext,fmt)
+        print 'Warning, ext (%s) does not match format (%s) for %s' % (ext,fmt,srcpath)
         return hrow
     
 
