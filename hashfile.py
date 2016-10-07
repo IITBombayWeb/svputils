@@ -11,24 +11,30 @@ import re
 import urllib2
 import shutil
 
+import hashlib
 
-def sanefilename(strlist):
-    filename = '-'.join(strlist).strip().lower()
-    prunewordlist=[
-        "a", "an", "as", "at", "before", "but", "by", "for", "from", "is", "in", "into", "like", "of", "off", "on", "onto", "per", "since", "than", "the", "this", "that", " up", "via", "with"] 
+def hash_a_file(filename):
+    
+    BLOCKSIZE = 65536
+    hasher = hashlib.sha1()
 
-    # \b for begin or end of word, | is logical OR
-    # "\ba\b|\ban\b|\bas\b" for a, an as
-    prepregex =  r"\b" + r"\b|\b".join(prunewordlist) + r"\b"
-    spaceregex = r"\s"
-    hypregex = r"-+"
-    splcharegex = r'[\\~!@#$%^&*(){}<>?/|,;:`\[\]+_="\']+'
+    try:
+        with open(filename, 'rb') as afile:
+            buf = afile.read(BLOCKSIZE)
+            while len(buf) > 0:
+                hasher.update(buf)
+                buf = afile.read(BLOCKSIZE)
 
-    filename = re.sub(prepregex,'',filename)
-    filename = re.sub(spaceregex,'-',filename)
-    filename = re.sub(splcharegex,'',filename)
-    filename = re.sub(hypregex,'-',filename)
-    return filename
+        fhash = hasher.hexdigest()
+    except EnvironmentError:
+        # parent of IOError, OSError *and* WindowsError where available
+       fhash = 'Error' 
+        
+    print(fhash)
+
+    return fhash
+
+
 
 # Input header                           # output header        
 # 0 Assignee                             # 0  Unique ID (in local context)
@@ -54,18 +60,7 @@ def sanefilename(strlist):
 # 20 Copyright          
 # 21 Keyword/ Subject   
 
-def makesane(row):
-    # made from uniq ID, title and extension
-    title = row[9].rstrip('.')
-    fmt = row[19].lower()
-    filename = sanefilename([row[8], title + '.' + fmt])
-
-    # source
-    dirname = sanefilename([row[5]])
-
-    relpath = 'archive/' + dirname + '/' + filename
-
-
+def hashedfile(row):
     # replace % characters in URL eg %20 by space
     urlpath = urllib2.unquote(row[3])
     urlprefix = "http://10.129.50.5/nvli/data/"
@@ -77,32 +72,25 @@ def makesane(row):
     srcdir = "/NFSMount/SV-Patel_Data/nvli"
     srcpath = '/'.join([srcdir,srcfile])
 
-    destroot = "/NFSMount/sardar/files"
-    destpath = '/'.join([destroot, relpath])
-
-    dirname = os.path.dirname(destpath)
-    if not os.path.exists(dirname):
-        os.makedirs(dirname)
+    # destroot = "/NFSMount/sardar/files"
+    # destpath = '/'.join([destroot, relpath])
+    # dirname = os.path.dirname(destpath)
+    # if not os.path.exists(dirname):
+    #     os.makedirs(dirname)
     
     #os.rename is a mv and needs permissions to delete srcpath
-    print 'Copying from %s to \n\t%s ' % (srcpath,destpath)
+    print 'Hashing from %s ' % srcpath
     sys.stdout.flush()
 
-    try: 
-        shutil.copyfile(srcpath,destpath)
-        sane = [row[8],relpath,row[9]] + row[10:]
-    # eg. src and dest are the same file
-    except shutil.Error as e:
-        print('Error: %s' % e)
-        sane = "Error"
-    # eg. source or destination doesn't exist
-    except IOError as e:
-        print('Error: %s, %s' % (srcpath, e.strerror))
-        sane = "Error"
+    filehash = hash_a_file(srcpath)
 
+    hrow = []
 
-    #sane = [filename]
-    return sane
+    if (filehash != 'Error'):
+        hrow = row
+        hrow.insert(22,filehash)
+
+    return hrow
 
 
 ###############################  Main Script ###############################
@@ -114,48 +102,32 @@ if (len(sys.argv) != 2):
 
 
 inpfilename=sys.argv[1]
-outfilename="processed-" + inpfilename
+outfilename="hashed-" + inpfilename
 
 
 with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
 
     inpreader  = csv.reader(inpf, delimiter=',')
-    sanewriter = csv.writer(outf, delimiter=',')
+    hashwriter = csv.writer(outf, delimiter=',')
 
     header = next(inpreader,None);
     #for i in range(len(header)):
     #    print i, header[i]
-
-    outheader = [ "Unique ID",
-                  "Filename",
-                  "Title",
-                  "Creator",
-                  "Date",
-                  "Coverage.Temporal",
-                  "Coverage.Spatial",
-                  "Publisher",
-                  "Description",
-                  "Language",
-                  "File type",
-                  "Content Type",
-                  "Format",
-                  "Copyright",
-                  "Keyword/Subject",
-    ]
-    sanewriter.writerow(outheader)
+    outheader = header
+    hashwriter.writerow(outheader)
 
     
     nrows = 0
     for irow in inpreader:
-        result = makesane(irow)
-        if (result != "Error"):
-            sanewriter.writerow(result)
+        result = hashedfile(irow)
+        if result:
+            hashwriter.writerow(result)
             nrows += 1
 
 print
 print '===================================================='
 print 'Processed', nrows, "rows"
-print 'Use', outfilename, "in the migrate module"
+print 'Use', outfilename, "to sort and remove duplicates"
 print
 
     
