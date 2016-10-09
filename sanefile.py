@@ -10,6 +10,8 @@ import os
 import re
 import urllib2
 import shutil
+import magic
+import mimetypes
 
 
 def sanefilename(strlist):
@@ -29,6 +31,15 @@ def sanefilename(strlist):
     filename = re.sub(splcharegex,'',filename)
     filename = re.sub(hypregex,'-',filename)
     return filename
+
+def extnmap(defext):
+    extmap = {
+        ".jpe" :  ".jpg",
+        ".m1v" :  ".mpeg",
+        ".asf" :  ".wmv"
+        }
+    # return the mapped extension, or itself
+    return extmap.get(defext,defext)
 
 # Input header                           # output header        
 # 0  Assignee                            # 0  Unique ID (in local context)
@@ -56,21 +67,9 @@ def sanefilename(strlist):
 # 21 File hash             
 # 22 Keyword/ Subject      
 
+
 def makesane(row):
-    # made from uniq ID, title and extension
-    title = row[9].rstrip('.')
-    fmt = row[19].lower()
-    filename = sanefilename([row[8], title + '.' + fmt])
-
-    # source 
-    sourceid = row[6]
-    dirname = sanefilename([sourceid])
-    # create a subdir for each hyphenated part of uniq ID
-    dirname = re.sub(r"-",'/',dirname) 
-
-    relpath = 'archive/' + dirname + '/' + filename
-
-
+   
     # replace % characters in URL eg %20 by space
     urlpath = urllib2.unquote(row[3])
     urlprefix = "http://10.129.50.5/nvli/data/"
@@ -81,6 +80,50 @@ def makesane(row):
     # the local partition
     srcdir = "/NFSMount/SV-Patel_Data/nvli"
     srcpath = '/'.join([srcdir,srcfile])
+
+    # mimetypes.guess_extension(mimetypes.guess_type())"
+    
+
+    # made from uniq ID, title and extension
+    title = row[9].rstrip('.')
+    #fmt = row[20].lower()
+    #filename = sanefilename([row[8], title + '.' + fmt])
+
+    # mimetypes library does not seem to use magic, so this does not work
+    #fmt = mimetypes.guess_extension(mimetypes.guess_type(srcpath)[0])
+
+    ## https://github.com/ahupp/python-magic
+    ## pip install python-magic
+
+    try:
+        ext = mimetypes.guess_extension(magic.from_file(srcpath,mime=True))
+    except EnvironmentError:
+        # parent of IOError, OSError *and* WindowsError where available
+        # print 'Error, file not found: %s' % srcpath
+        ext = "." + row[20].lower()
+    except:
+        print "For from_file missing error: pip install python-magic"
+        sys.exit(0)
+    
+    # some standard mappings where the default provided by python is
+    # not conventional (eg: .jpe for .jpeg or .jpg
+    ext = extnmap (ext)
+
+    # rename the original extension to that of magic
+    row[20] = ext.lstrip('.')
+        
+
+    filename = sanefilename([row[8], title + ext])
+
+    # source 
+    sourceid = row[6]
+    dirname = sanefilename([sourceid])
+    # create a subdir for each hyphenated part of uniq ID
+    dirname = re.sub(r"-",'/',dirname) 
+
+    relpath = 'archive/' + dirname + '/' + filename
+
+    
 
     destroot = "/NFSMount/sardar/files"
     destpath = '/'.join([destroot, relpath])
@@ -95,7 +138,7 @@ def makesane(row):
 
     try: 
         shutil.copyfile(srcpath,destpath)
-        sane = [row[8],relpath,row[4]] + row[10:]
+        sane = [row[9],relpath,row[4]] + row[10:]
     # eg. src and dest are the same file
     except shutil.Error as e:
         print('Error: %s' % e)
@@ -166,5 +209,3 @@ print 'Processed', nrows, "rows"
 print 'Use', outfilename, "in the migrate module"
 print
 
-    
-        
