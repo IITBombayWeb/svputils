@@ -31,28 +31,30 @@ def sanefilename(strlist):
     return filename
 
 # Input header                           # output header        
-# 0 Assignee                             # 0  Unique ID (in local context)
-# 1 Status                               # 1  Filename (relative)
-# 2 Comment/Remark                       # 2  Title              
-# 3 Local URL                            # 3  Creator           
-# 4 YYYY                                 # 4  Date              
-# 5 Source ID                            # 5  Coverage.Temporal 
-# 6 Accession Number                     # 6  Coverage.Spatial  
-# 7 Internal ID / Seq ID                 # 7  Publisher         
-# 8 Unique Resource ID                   # 8  Description       
-# 9 Title                                # 9  Language          
-# 10 Creator                             # 10 File type         
-# 11 Date.Created                        # 11 Content Type      
-# 12 Coverage.Temporal                   # 12 Format            
-# 13 Coverage.Spatial                    # 13 Copyright         
-# 14 Publisher                           # 14 Keyword/ Subject  
-# 15 Description        
-# 16 Language           
-# 17 File type          
-# 18 Content Type       
-# 19 Format             
-# 20 Copyright          
-# 21 Keyword/ Subject   
+# 0  Assignee                            # 0  Unique ID (in local context)
+# 1  Status                              # 1  Filename (relative)
+# 2  Comment/Remark                      # 2  SHA1
+# 3  Local URL                           # 3  Title 
+# 4  SHA1 Hash                           # 4  Creator           
+# 5  YYYY                                # 5  Date              
+# 6  Source ID                           # 6  Coverage.Temporal 
+# 7  Accession Number                    # 7  Coverage.Spatial  
+# 8  Internal ID / Seq ID                # 8  Publisher         
+# 9  Unique Resource ID                  # 9  Description       
+# 10 Title                               # 10 Language          
+# 11 Creator                             # 11 File type         
+# 12 Date.Created                        # 12 Content Type      
+# 13 Coverage.Temporal                   # 13 Format            
+# 14 Coverage.Spatial                    # 14 Copyright         
+# 15 Publisher                           # 15 Keyword/ Subject 
+# 16 Description           
+# 17 Language              
+# 18 File type             
+# 19 Content Type          
+# 20 Format                
+# 22 Copyright             
+# 21 File hash             
+# 22 Keyword/ Subject      
 
 def makesane(row):
     # made from uniq ID, title and extension
@@ -60,8 +62,11 @@ def makesane(row):
     fmt = row[19].lower()
     filename = sanefilename([row[8], title + '.' + fmt])
 
-    # source
-    dirname = sanefilename([row[5]])
+    # source 
+    sourceid = row[6]
+    dirname = sanefilename([sourceid])
+    # create a subdir for each hyphenated part of uniq ID
+    dirname = re.sub(r"-",'/',dirname) 
 
     relpath = 'archive/' + dirname + '/' + filename
 
@@ -90,7 +95,7 @@ def makesane(row):
 
     try: 
         shutil.copyfile(srcpath,destpath)
-        sane = [row[8],relpath,row[9]] + row[10:]
+        sane = [row[8],relpath,row[4]] + row[10:]
     # eg. src and dest are the same file
     except shutil.Error as e:
         print('Error: %s' % e)
@@ -123,11 +128,14 @@ with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
     sanewriter = csv.writer(outf, delimiter=',')
 
     header = next(inpreader,None);
-    #for i in range(len(header)):
-    #    print i, header[i]
+
+    # for i in range(len(header)):
+    #     print i, header[i]
+    # sys.exit(0)
 
     outheader = [ "Unique ID",
                   "Filename",
+                  "SHA1 hash",
                   "Title",
                   "Creator",
                   "Date",
