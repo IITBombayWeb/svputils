@@ -85,7 +85,7 @@ def makesane(row):
     
 
     # made from uniq ID, title and extension
-    title = row[9].rstrip('.')
+    title = row[10].rstrip('.')
     #fmt = row[20].lower()
     #filename = sanefilename([row[8], title + '.' + fmt])
 
@@ -113,7 +113,7 @@ def makesane(row):
     row[20] = ext.lstrip('.')
         
 
-    filename = sanefilename([row[8], title + ext])
+    filename = sanefilename([row[9], title + ext])
 
     # source 
     sourceid = row[6]
