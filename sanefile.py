@@ -15,16 +15,23 @@ import mimetypes
 
 
 def sanefilename(strlist):
-    filename = '-'.join(strlist).strip().lower()
-    prunewordlist=[
-        "a", "an", "as", "at", "before", "but", "by", "for", "from", "is", "in", "into", "like", "of", "off", "on", "onto", "per", "since", "than", "the", "this", "that", " up", "via", "with"] 
+    filename = '-'.join(strlist).lower()
+
+    # verbs, adjectives, prepositions, others from
+    # https://en.wikipedia.org/wiki/Most_common_words_in_English
+    prunewords = " be have do say get make go know take see come think look want give use find tell ask work seem feel try leave call good new first last long great little own other old right big high different small large next early young important few bad same able to of in for on with at by from up about into over after beneath under above others the and a that it not he as you this but his they her she or an will my all would there their via per since vs onto off is before like very"
+    prunewordlist = prunewords.split()
+    
+    
+    #print len(prunewordlist), prunewordlist
+    #sys.exit(0)
 
     # \b for begin or end of word, | is logical OR
     # "\ba\b|\ban\b|\bas\b" for a, an as
     prepregex =  r"\b" + r"\b|\b".join(prunewordlist) + r"\b"
     spaceregex = r"\s"
     hypregex = r"-+"
-    splcharegex = r'[\\~!@#$%^&*(){}<>?/|,;:`\[\]+_="\']+'
+    splcharegex = r'[\\~!@#$%^&*(){}<>?/|.,;:`\[\]+_="\']+'
 
     filename = re.sub(prepregex,'',filename)
     filename = re.sub(spaceregex,'-',filename)
@@ -80,13 +87,9 @@ def makesane(row):
     srcdir = "/NFSMount/SV-Patel_Data/nvli"
     srcpath = '/'.join([srcdir,srcfile])
 
-    # mimetypes.guess_extension(mimetypes.guess_type())"
-    
-
-    # made from uniq ID, title and extension
-    title = row[10].rstrip('.')
-    #fmt = row[20].lower()
-    #filename = sanefilename([row[8], title + '.' + fmt])
+    title = row[10].strip()
+    title = title.rstrip('.')
+    title = title.strip()
 
     # mimetypes library does not seem to use magic, so this does not work
     #fmt = mimetypes.guess_extension(mimetypes.guess_type(srcpath)[0])
@@ -112,7 +115,15 @@ def makesane(row):
     row[20] = ext.lstrip('.')
         
 
-    filename = sanefilename([row[9], title + ext])
+    # made from uniq ID, title and extension
+    filename = sanefilename([title]) # remove common words
+    # get the first n words of title
+    filename = '-'.join(filename.split('-')[:6])
+
+    # prefix and suffix
+    filename = sanefilename([row[9], filename]) + ext
+    #filename = sanefilename([row[9], title]) + ext
+    # because sanefilename strips . from filename
 
     # source 
     sourceid = row[6]
