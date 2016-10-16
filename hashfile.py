@@ -71,12 +71,40 @@ def hash_a_file(filename):
 # 21 Keyword/ Subject   
 # 22 File hash
 
+# 1 Status
+# 2 Comments/ Suggestion
+# 3 Local URL
+# 4 SHA1 hash
+# 5 Org/Dup. Check
+# 6 YYYY
+# 7 Source ID
+# 8 Accession Number
+# 9 Internal ID / Seq ID
+# 10 Unique Resource ID
+# 11 Title
+# 12 Org/Dup. Check
+# 13 Creator
+# 14 Date.Created
+# 15 Coverage.Temporal
+# 16 Coverage.Spatial
+# 17 Publisher
+# 18 Description
+# 19 Language
+# 20 File type
+# 21 Content Type
+# 22 Format
+# 23 Copyright
+# 24 Keyword/ Subject
+
+
+
+
 def hashedfile(row):
 
     global allowedfmt
     
     # replace % characters in URL eg %20 by space
-    urlpath = urllib2.unquote(row[3])
+    urlpath = urllib2.unquote(row[3])  
     urlprefix = "http://10.129.50.5/nvli/data/"
     
     # Strip urlprefix to find the relative path in local partition
@@ -87,7 +115,7 @@ def hashedfile(row):
     srcpath = '/'.join([srcdir,srcfile])
 
 
-    fmt = row[19].lower().strip()
+    fmt = row[22].lower().strip()
 
     hrow = []
 
@@ -112,9 +140,10 @@ def hashedfile(row):
 
     if (filehash != 'Error'):
         hrow = map(str.strip,row)
-        hrow[9]  = hrow[9].rstrip('.') # remove trailing period in title
+        hrow[11]  = hrow[11].rstrip('.') # remove trailing period in title
         
-        hrow.insert(22,filehash)
+        #hrow.insert(4,filehash)
+        hrow[4] = filehash
 
     return hrow
 
@@ -137,11 +166,11 @@ with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
     hashwriter = csv.writer(outf, delimiter=',')
 
     header = next(inpreader,None);
-    #for i in range(len(header)):
-    #    print i, header[i]
+    for i in range(len(header)):
+        print i, header[i]
     outheader = header
 
-    outheader.insert(22,"File hash")
+    #outheader.insert(22,"SHA1 hash")
     hashwriter.writerow(outheader)
 
     
