@@ -19,7 +19,7 @@ def sanefilename(strlist):
 
     # verbs, adjectives, prepositions, others from
     # https://en.wikipedia.org/wiki/Most_common_words_in_English
-    prunewords = " be have do say get make go know take see come think look want give use find tell ask work seem feel try leave call good new first last long great little own other old right big high different small large next early young important few bad same able to of in for on with at by from up about into over after beneath under above others the and a that it not he as you this but his they her she or an will my all would there their via per since vs onto off is before like very"
+    prunewords = " be have do say get make go know take see come think look want give use find tell ask work seem feel try leave call good new first last long great little own other old right big high different small large next early young important few bad same able to of in for on with at by from up about into over after beneath under above others the and a that it not he as you this but his they her she or an will my all would there their via per since vs onto off is before like very most mostly and to"
     prunewordlist = prunewords.split()
     
     
