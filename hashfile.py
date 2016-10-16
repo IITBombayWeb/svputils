@@ -44,33 +44,6 @@ def hash_a_file(filename):
 
     return fhash
 
-
-
-# Input header                           
-# 0 Assignee                             
-# 1 Status                                
-# 2 Comment/Remark                         
-# 3 Local URL                             
-# 4 YYYY                                  
-# 5 Source ID                             
-# 6 Accession Number                      
-# 7 Internal ID / Seq ID                  
-# 8 Unique Resource ID                    
-# 9 Title                                 
-# 10 Creator                              
-# 11 Date.Created                         
-# 12 Coverage.Temporal                    
-# 13 Coverage.Spatial                     
-# 14 Publisher                            
-# 15 Description        
-# 16 Language           
-# 17 File type          
-# 18 Content Type       
-# 19 Format             
-# 20 Copyright          
-# 21 Keyword/ Subject   
-# 22 File hash
-
 # 1 Status
 # 2 Comments/ Suggestion
 # 3 Local URL

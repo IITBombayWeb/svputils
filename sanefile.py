@@ -63,8 +63,7 @@ def extnmap(defext):
 # 18 File type             
 # 19 Content Type          
 # 20 Format                
-# 22 Copyright             
-# 21 File hash             
+# 21 Copyright             
 # 22 Keyword/ Subject      
 
 
@@ -172,9 +171,9 @@ with open(inpfilename,'r') as inpf, open(outfilename,'wb') as outf:
 
     header = next(inpreader,None);
 
-    # for i in range(len(header)):
-    #     print i, header[i]
-    # sys.exit(0)
+    for i in range(len(header)):
+        print i, header[i]
+    #sys.exit(0)
 
     outheader = [ "Unique ID",
                   "Filename",
