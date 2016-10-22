@@ -1,0 +1,14 @@
+<?php
+
+$f = fsockopen('smtp.google.com', 465) ;
+if ($f !== false) {
+      $res = fread($f, 1024) ;
+      if (strlen($res) > 0 && strpos($res, '220') === 0) {
+	 echo "Success!" ;
+	}	
+	else {
+		echo "Error: " . $res ;
+	}
+}
+
+fclose($f) ;
